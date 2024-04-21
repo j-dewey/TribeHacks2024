@@ -1,18 +1,25 @@
 import pygame as pg
 import gui
+import map_editor
 
 WINDOW_WIDTH = 1100
 WINDOW_HEIGHT = 800
+
+EDIT_BAR_WIDTH = 400
 
 SEARCH_BAR_HEIGHT = 50
 
 def start_pathing():
     print("Starting Pathing")
 
-def run():
+def run(edit_mode: bool):
     pg.init()
-    win = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+    if edit_mode:
+        win = pg.display.set_mode((WINDOW_WIDTH + EDIT_BAR_WIDTH, WINDOW_HEIGHT))
+    else:
+        win = pg.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     pg.display.set_caption("TribeHacks 2024 -- Maps")
+    
     font = pg.font.SysFont("arial", 30)
 
     buildings = [
@@ -39,6 +46,21 @@ def run():
     finished_button = gui.Button(btn_rect, btn_sprite, start_pathing)
     search_frame = gui.Frame(pg.Rect(0.0, 0.0, WINDOW_WIDTH, SEARCH_BAR_HEIGHT), half_green_half_gold, start_text, start_input, end_text, end_input, finished_button)
     elements = [view, search_frame]
+
+    # edit mode stuff
+    if edit_mode:
+        overlay_image = pg.Surface(view.image.get_size(), pg.SRCALPHA)
+        editor_overlay = gui.ScrollingImage(view.rect, overlay_image)
+        map_editor.load_things(view, editor_overlay, WINDOW_HEIGHT)
+        view.mouse_movement = map_editor.scrolling_image_mouse_move_override
+        view.on_click = map_editor.scrolling_image_on_click_override
+
+        mode_btn_sprite = font.render("Mode: Vertex", True, (255, 255, 255), (122, 122, 122))
+        mode_btn = gui.Button(mode_btn_sprite.get_rect().move(WINDOW_WIDTH, WINDOW_HEIGHT - mode_btn_sprite.get_height()), mode_btn_sprite, None)
+        mode_btn.onclick = lambda: map_editor.toggle_edit_mode(mode_btn, font)
+
+        vertex_frame = map_editor.generate_vertex_edit_frame(WINDOW_WIDTH, EDIT_BAR_WIDTH)
+        elements += [mode_btn, editor_overlay, vertex_frame]
 
     # logic operators
     mouse_down = False

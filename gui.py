@@ -38,13 +38,17 @@ class Button(GuiElement):
 class ScrollingImage(GuiElement):
     def __init__(self, rect: pg.Rect, image: pg.Surface) -> None:
         self.rect = rect
-        self.surface = pg.Surface((rect.right - rect.left, rect.bottom - rect.top))
+        self.surface = pg.Surface((rect.right - rect.left, rect.bottom - rect.top), pg.SRCALPHA)
         self.image = image
         self.offset = [0,0]
         self.surface.blit(self.image, self.offset)
 
     def mouse_movement(self, pressed: bool, dx: float, dy: float):
         if pressed: self.scroll(dx, dy)
+
+    def render(self):
+        self.surface.fill((0,0,0,0))
+        self.surface.blit(self.image, self.offset)
 
     def scroll(self, dx: float, dy: float):
         self.offset[0] += dx
@@ -53,7 +57,7 @@ class ScrollingImage(GuiElement):
         if self.offset[0] > 0: self.offset[0] = 0
         if self.offset[1] > 0: self.offset[1] = 0
         if self.offset[1] < -(self.image.get_height() - self.surface.get_height()): self.offset[1] = -(self.image.get_height() - self.surface.get_height())
-        self.surface.blit(self.image, self.offset)
+        self.render()
 
 class Frame(GuiElement):
     def __init__(self, rect: pg.Rect, background: pg.Surface, *elements: GuiElement) -> None:
@@ -70,8 +74,7 @@ class Frame(GuiElement):
             self.surface.blit(el.surface, (el.rect.left, el.rect.top))
 
     def on_click(self, mpos: list[float]):
-        mpos = [mpos[0] - self.rect.left, mpos[1]]
-        print(mpos)
+        mpos = [mpos[0] - self.rect.left, mpos[1] - self.rect.top]
         if not self.scoped_element.was_pressed(mpos):
             for el in self.elements:
                 if el.was_pressed(mpos):
@@ -85,6 +88,26 @@ class Frame(GuiElement):
     def key_press(self, key: pg.event.Event):
         self.scoped_element.key_press(key)
         self.update_surface()
+
+class TypeBar(GuiElement):
+    def __init__(self, rect: pg.Rect, text: str) -> None:
+        self.rect = rect
+        self.surface = pg.Surface((rect.right - rect.left, rect.bottom - rect.top))
+        self.font = pg.font.SysFont("arial", 20)
+        self.text = text
+        self.render()
+
+    def render(self):
+        self.surface.fill((255,255,255))
+        self.surface.blit(self.font.render(self.text, True, (0,0,0), None), (0,0))
+
+    def key_press(self, key: pg.event.Event):
+        print('recieved: ', key)
+        if is_alphanumeric(key.unicode):
+            self.text += key.unicode
+        elif key.unicode == '\x08':
+            self.text = self.text[:len(self.text)-1]
+        self.render()
 
 class SearchBar(GuiElement):
     def __init__(self, rect: pg.Rect, default: str, valid_answers: list[str]) -> None:
