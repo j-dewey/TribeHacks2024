@@ -1,6 +1,7 @@
 import pygame as pg
 from typing import Callable
 from util import is_alphanumeric
+from string_tree import StringTree
 
 class GuiElement:
     def mouse_movement(self, pressed: bool, dx: float, dy: float):
@@ -36,11 +37,11 @@ class Button(GuiElement):
             self.onclick()
 
 class ScrollingImage(GuiElement):
-    def __init__(self, rect: pg.Rect, image: pg.Surface) -> None:
+    def __init__(self, rect: pg.Rect, image: pg.Surface, offset: list[float]) -> None:
         self.rect = rect
         self.surface = pg.Surface((rect.right - rect.left, rect.bottom - rect.top), pg.SRCALPHA)
         self.image = image
-        self.offset = [0,0]
+        self.offset = offset
         self.surface.blit(self.image, self.offset)
 
     def mouse_movement(self, pressed: bool, dx: float, dy: float):
@@ -102,7 +103,6 @@ class TypeBar(GuiElement):
         self.surface.blit(self.font.render(self.text, True, (0,0,0), None), (0,0))
 
     def key_press(self, key: pg.event.Event):
-        print('recieved: ', key)
         if is_alphanumeric(key.unicode):
             self.text += key.unicode
         elif key.unicode == '\x08':
@@ -113,18 +113,23 @@ class SearchBar(GuiElement):
     def __init__(self, rect: pg.Rect, default: str, valid_answers: list[str]) -> None:
         self.rect = rect
         self.surface = pg.Surface((rect.right - rect.left, rect.bottom - rect.top))
-        self.valid_answers = valid_answers
+        self.valid_answers = StringTree(valid_answers)
         self.name_hint = ""
         self.input = ""
         self.default = default
         self.font = pg.font.SysFont("arial", 20)
         self.render()
+    
+    def update_valid_answers(self, new_answers: list[str]):
+        self.valid_answers = StringTree(new_answers)
 
     def render(self):
         self.surface.fill((255,255,255))
         if self.input == '':
             self.surface.blit(self.font.render(self.default, True, (0,0,0), None), (0,0))
             return
+        prediction = self.valid_answers.predict_string(self.input)
+        self.surface.blit(self.font.render(prediction, True, (122, 122, 12), None), (0,0))
         self.surface.blit(self.font.render(self.input, True, (0,0,0), None), (0,0))
 
     def key_press(self, key: pg.event.Event):
@@ -132,4 +137,6 @@ class SearchBar(GuiElement):
             self.input += key.unicode
         elif key.unicode == '\x08':
             self.input = self.input[:len(self.input)-1]
+        elif key.unicode == '\t':
+            self.input = self.valid_answers.predict_string(self.input)
         self.render()

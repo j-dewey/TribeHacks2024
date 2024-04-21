@@ -1,0 +1,74 @@
+from __future__ import annotations
+class Node:
+    def __init__(self, name: str):
+        self.name = name
+        self.connected = [] # (Node, Distance)
+        self.from_start = 0
+        self.prev = None
+        self.gui_inter = None
+
+    def connect(self, node: Node, dist: float):
+        self.connected.append((node, dist))
+        node.connected.append((self, dist))
+
+def traverse_node(start: Node, end: Node) -> Node:
+    been = []
+    at = [start]
+    going = []
+    while True:
+        while len(at) > 0:
+            node = at[0]
+            for (possibility, dist) in node.connected:
+                real_dist = dist + node.from_start
+                if possibility == end:
+                    end.prev = node
+                    end.from_start = real_dist
+                    return end
+                if (possibility.from_start == 0 or possibility.from_start > real_dist) and possibility not in been and possibility not in at:
+                    possibility.from_start = real_dist
+                    possibility.prev = node
+                    going.append(possibility)
+            been.append(node)
+            at.remove(node)
+            at += going
+            going = []
+
+def reverse_traversal(start: Node, end: Node) -> list[Node]:
+    nodes = []
+    current = end
+    while current != start:
+        nodes.append(current)
+        current = current.prev
+    nodes.append(start)
+    return nodes
+
+if __name__ == '__main__':
+    blair = Node('blair')
+    chancellor = Node("chancellor")
+    tucker = Node("Tucker")
+    wren = Node("wren")
+    ewell = Node("ewell")
+    washington = Node("washington")
+    mcglothlin = Node("Mcglothlin")
+    meadow = Node("meadow")
+
+    blair.connect(chancellor, 1)
+    blair.connect(meadow, 1)
+    blair.connect(mcglothlin, 1)
+
+    meadow.connect(mcglothlin, 1)
+
+    mcglothlin.connect(washington, 1)
+
+    washington.connect(chancellor, 1)
+    washington.connect(ewell, 1)
+    
+    tucker.connect(chancellor, 1)
+    tucker.connect(ewell, 1)
+    tucker.connect(wren, 1)
+
+    wren.connect(ewell, 1)
+
+    path = reverse_traversal(meadow, traverse_node(meadow, wren))
+    for p in path:
+        print(p.name)
