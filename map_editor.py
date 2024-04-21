@@ -24,6 +24,12 @@ edges: list[tuple[int]] = []
 selected_node = -1
 edge_connections = []
 
+def reset_paths():
+    global vertices
+    for v in vertices:
+        v.node.from_start = 0
+        v.node.prev = None
+
 def overlay_overlay():
     # overlay overlay on overlay
     global editor_overlay, drawn_path_overlay
@@ -41,6 +47,7 @@ def draw_path(path: list[Node]):
 
 def save_map_data():
     global vertices, edges
+    print('saving')
     file = open('map.map', 'w')
     file.write(str('\\vertex'))
     for v in vertices:
@@ -72,6 +79,7 @@ def load_map_data():
             vertices.append(DebugVertex(float(p1), float(p2), p3, node))
             node.gui_inter = vertices[len(vertices)-1]
         if reading_indices:
+            if p1 == p2: continue
             edges.append((int(p1), int(p2)))
             v1 = vertices[int(p1)].node
             v2 = vertices[int(p2)].node

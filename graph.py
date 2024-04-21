@@ -33,6 +33,26 @@ def traverse_node(start: Node, end: Node) -> Node:
             at += going
             going = []
 
+def alt_traverse_node(start: Node, end: Node) -> Node:
+    been = []
+    at = [start]
+    going = []
+    while True:
+        for node in at:
+            for (neighbor, weight) in node.connected:
+                if neighbor == end:
+                    neighbor.prev = node
+                    return neighbor
+                if not neighbor in at and not neighbor in been:
+                    neighbor.from_start = weight
+                    neighbor.prev = node
+                    going.append(neighbor)
+                    continue
+        been += at
+        at = going
+        going = []
+            
+
 def reverse_traversal(start: Node, end: Node) -> list[Node]:
     nodes = []
     current = end
