@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-from github_version.lib.map_editor import DebugVertex
+class DebugVertex:
+    def __init__(self, x: float, y: float, name: str, node: Node):
+        self.coords = [x,y]
+        self.node = node
+        self.name = name
 
 class Node:
     def __init__(self, name: str):
         self.name = name
         self.connected = [] # (Node, Distance)
         self.from_start = 0
-        self.prev: Node = Node('null')
+        self.prev: Node | None = None
         self.gui_inter: DebugVertex = DebugVertex(0.0, 0.0, "null", self)
-
-    @staticmethod
-    def null() -> Node:
-        return Node("null")
 
     def connect(self, node: Node, dist: float):
         self.connected.append((node, dist))
@@ -63,7 +63,7 @@ def alt_traverse_node(start: Node, end: Node) -> Node:
 def reverse_traversal(start: Node, end: Node) -> list[Node]:
     nodes = []
     current = end
-    while current != start:
+    while current != start and current != None:
         nodes.append(current)
         current = current.prev
     nodes.append(start)

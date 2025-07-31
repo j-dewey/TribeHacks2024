@@ -5,9 +5,10 @@ from lib.util import is_alphanumeric
 from lib.string_tree import StringTree
 
 class GuiElement:
-    def __init__(self, rect: pg.Rect, surf: pg.Surface):
-        self.rect = rect
-        self.surface = surf
+    surface: pg.Surface
+    rect: pg.Rect
+    def __init__(self):
+        pass
 
     def mouse_movement(self, pressed: bool, dx: float, dy: float):
         pass
@@ -22,7 +23,7 @@ class GuiElement:
         pass
 
     def was_pressed(self, mpos: list[float]) -> bool:
-        return self.rect.collidepoint(mpos)
+        return False
 
 class BlankElement(GuiElement):
     def was_pressed(self, mpos: list[float]) -> bool:
@@ -34,6 +35,9 @@ class Text(GuiElement):
         self.rect = self.surface.get_rect()
         self.rect.move_ip(coords)
 
+    def was_pressed(self, mpos: list[float]) -> bool:
+        return self.rect.collidepoint(mpos)
+
 class Button(GuiElement):
     def __init__(self, rect: pg.Rect, surface: pg.Surface, onclick: Callable) -> None:
         self.rect = rect
@@ -43,6 +47,9 @@ class Button(GuiElement):
     def on_click(self, mpos: list[float]):
         if self.was_pressed(mpos):
             self.onclick()
+
+    def was_pressed(self, mpos: list[float]) -> bool:
+        return self.rect.collidepoint(mpos)
 
 class ScrollingImage(GuiElement):
     def __init__(self, rect: pg.Rect, image: pg.Surface, offset: list[float]) -> None:
@@ -68,13 +75,16 @@ class ScrollingImage(GuiElement):
         if self.offset[1] < -(self.image.get_height() - self.surface.get_height()): self.offset[1] = -(self.image.get_height() - self.surface.get_height())
         self.render()
 
+    def was_pressed(self, mpos: list[float]) -> bool:
+        return self.rect.collidepoint(mpos)
+
 class Frame(GuiElement):
     def __init__(self, rect: pg.Rect, background: pg.Surface, *elements: GuiElement) -> None:
         self.rect = rect
         self.surface = background
         self.background = background
         self.elements = list(elements)
-        self.scoped_element = BlankElement(pg.Rect(0.0, 0.0, 0.0, 0.0), pg.Surface((0.0, 0.0)))
+        self.scoped_element = BlankElement()
         self.update_surface()
 
     def update_surface(self):
@@ -98,6 +108,9 @@ class Frame(GuiElement):
         self.scoped_element.key_press(key)
         self.update_surface()
 
+    def was_pressed(self, mpos: list[float]) -> bool:
+        return self.rect.collidepoint(mpos)
+
 class TypeBar(GuiElement):
     def __init__(self, rect: pg.Rect, text: str) -> None:
         self.rect = rect
@@ -116,6 +129,9 @@ class TypeBar(GuiElement):
         elif key.unicode == '\x08':
             self.text = self.text[:len(self.text)-1]
         self.render()
+
+    def was_pressed(self, mpos: list[float]) -> bool:
+        return self.rect.collidepoint(mpos)
 
 class SearchBar(GuiElement):
     def __init__(self, rect: pg.Rect, default: str, valid_answers: list[str]) -> None:
@@ -148,3 +164,6 @@ class SearchBar(GuiElement):
         elif key.unicode == '\t':
             self.input = self.valid_answers.predict_string(self.input)
         self.render()
+
+    def was_pressed(self, mpos: list[float]) -> bool:
+        return self.rect.collidepoint(mpos)

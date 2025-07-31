@@ -1,14 +1,8 @@
 import pygame as pg
 
-from lib.graph import Node
+from lib.graph import Node, DebugVertex
 from lib.gui import Button, ScrollingImage, Frame, TypeBar, Text
 from lib.util import circle_col, dist
-
-class DebugVertex:
-    def __init__(self, x: float, y: float, name: str, node: Node):
-        self.coords = [x,y]
-        self.node = node
-        self.name = name
 
 scrolling_image = None
 editor_overlay = None
@@ -29,7 +23,7 @@ def reset_paths():
     global vertices
     for v in vertices:
         v.node.from_start = 0
-        v.node.prev = Node.null()
+        v.node.prev = None
 
 def overlay_overlay():
     # overlay overlay on overlay
@@ -147,9 +141,14 @@ def rerender_vertices():
 def update_vertex_frame():
     global vertex_frame, vertices, selected_node
     if not vertex_frame: raise ValueError
+
     name_typer = vertex_frame.elements[0]
     x_typer = vertex_frame.elements[2]
     y_typer = vertex_frame.elements[4]
+    assert isinstance(name_typer, TypeBar)
+    assert isinstance(x_typer, TypeBar)
+    assert isinstance(y_typer, TypeBar)
+
     name_typer.text = vertices[selected_node].name
     x_typer.text = str(vertices[selected_node].coords[0])
     y_typer.text = str(vertices[selected_node].coords[1])
@@ -159,7 +158,11 @@ def update_vertex_frame():
     vertex_frame.update_surface()
 
 def scrolling_image_on_click_override(mpos: list[float]):
-    global edit_mode, editor_overlay, vertices, selected_node, edge_connections, edges
+    global edit_mode, editor_overlay, vertices, selected_node, edge_connections, edges, win_height
+
+    assert isinstance(editor_overlay, ScrollingImage)
+    assert isinstance(win_height, float)
+
     if edit_mode == 0:
         for i, v in enumerate(vertices):
             pos = [v.coords[0] + editor_overlay.offset[0], abs(v.coords[1] + editor_overlay.offset[1] - win_height) + 50]
@@ -167,13 +170,17 @@ def scrolling_image_on_click_override(mpos: list[float]):
                 selected_node = i
                 update_vertex_frame()
                 return
+
         adjusted_y = abs(mpos[1] - win_height) + 50 # need to account for bar at bottom
         adjusted_coords = [mpos[0] + abs(editor_overlay.offset[0]), adjusted_y - editor_overlay.offset[1]]
-        vertices.append(DebugVertex(adjusted_coords[0], adjusted_coords[1], "Vertex" + str(len(vertices))))
+
+        vertices.append(DebugVertex(adjusted_coords[0], adjusted_coords[1], "Vertex" + str(len(vertices)), Node("null")))
         selected_node = len(vertices)-1
+
         pg.draw.circle(editor_overlay.image, (0,0,0), adjusted_coords, 5)
         update_vertex_frame()
         editor_overlay.render()
+
     if edit_mode == 1:
         for i, v in enumerate(vertices):
             pos = [v.coords[0] + editor_overlay.offset[0], abs(v.coords[1] + editor_overlay.offset[1] - win_height) + 50]
@@ -182,8 +189,9 @@ def scrolling_image_on_click_override(mpos: list[float]):
                 update_vertex_frame()
                 edge_connections.append(i)
                 break
+
         if len(edge_connections) == 2:
-            edges.append(edge_connections)
+            edges.append((edge_connections[0], edge_connections[1]))
             pg.draw.line(editor_overlay.image, (122,122,122), vertices[edge_connections[0]].coords, vertices[edge_connections[1]].coords, 2)
             editor_overlay.render()
             edge_connections = []
@@ -191,6 +199,10 @@ def scrolling_image_on_click_override(mpos: list[float]):
 
 def scrolling_image_mouse_move_override(pressed: bool, dx: float, dy: float):
     global scrolling_image, editor_overlay
+
+    assert isinstance(scrolling_image, ScrollingImage)
+    assert isinstance(editor_overlay, ScrollingImage)
+
     if pressed and edit_mode == 2:
         scrolling_image.scroll(dx, dy)
         editor_overlay.scroll(dx, dy)
