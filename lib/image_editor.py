@@ -1,5 +1,9 @@
 import pygame as pg
 
+'''
+    A tooling script that was used to help size an image during production
+'''
+
 if __name__ == '__main__':
     win = pg.display.set_mode((1600, 1200))
 
@@ -13,23 +17,23 @@ if __name__ == '__main__':
     while True:
         for ev in pg.event.get():
             if ev.type == pg.QUIT: quit()
-            if ev.type == pg.KEYDOWN: 
+            if ev.type == pg.KEYDOWN:
                 if ev.unicode == "c":
                     moving_top = not moving_top
                 elif ev.unicode == "s":
-                    height = abs(upper_coords[1]) + lower_coords[1] + upper.get_height() 
+                    height = abs(upper_coords[1]) + lower_coords[1] + upper.get_height()
                     surface = pg.Surface((upper.get_width() - abs(lower_coords[0]), height))
                     surface.blit(upper, [0, 0])
                     surface.blit(lower, [lower_coords[0], height - lower.get_height() - 20])
                     pg.image.save(surface, "new_map.png")
                     quit()
                 elif ev.unicode == "v":
-                    editing = not editing        
+                    editing = not editing
         dmouse = pg.mouse.get_rel()
         if editing:
             if moving_top:
                 upper_coords = [upper_coords[0] + dmouse[0], upper_coords[1] + dmouse[1]]
-            else: 
+            else:
                 lower_coords = [lower_coords[0] + dmouse[0], lower_coords[1] + dmouse[1]]
 
         win.fill((255, 255, 255))

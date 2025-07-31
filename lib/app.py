@@ -12,27 +12,33 @@ SEARCH_BAR_HEIGHT = 50
 
 '''
     Look for a path from the selection in start to the selection in end
+    Returns early if an unrecognized buliding name is entered
 '''
-def start_pathing(start: gui.SearchBar, end: gui.SearchBar, map: gui.ScrollingImage, overlay: gui.ScrollingImage):
+def start_pathing(start: gui.SearchBar, end: gui.SearchBar, map: gui.ScrollingImage, overlay: gui.ScrollingImage, building_list: list[str]):
+    if not start.input in building_list or not end.input in building_list:
+        return
+
     start_node = map_editor.traversal_nodes[start.input]
     end_node = map_editor.traversal_nodes[end.input]
     path = graph.reverse_traversal(start_node, graph.alt_traverse_node(start_node, end_node))
     map_editor.draw_path(path)
 
-    # try to center these
+    # Center on start node
     node_coords = start_node.gui_inter.coords
     desired_pos = [WINDOW_WIDTH / 2.0, (WINDOW_HEIGHT - SEARCH_BAR_HEIGHT) / 2.0]
-    print(node_coords, desired_pos)
     if node_coords[0] < desired_pos[0]: desired_pos[0] = 0.0
     if node_coords[1] < desired_pos[1]: desired_pos[1] = 0.0
     dx = desired_pos[0] - node_coords[0]
     dy = desired_pos[1] - node_coords[1]
     map.offset = [dx, dy]
+
     map.render()
     overlay.offset = [dx, dy]
     overlay.render()
 
-
+'''
+    Main Loop
+'''
 def run(edit_mode: bool, asset_path: str):
     pg.init()
     if edit_mode:
@@ -59,20 +65,22 @@ def run(edit_mode: bool, asset_path: str):
     view = gui.ScrollingImage(pg.Rect(0.0, SEARCH_BAR_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT), pg.image.load(asset_path + "map.png"), [-943, -545])
     overlay_image = pg.Surface(view.image.get_size(), pg.SRCALPHA)
     editor_overlay = gui.ScrollingImage(view.rect, overlay_image, view.offset)
-    start_text = gui.Text([160.0, 10.0], "From:", font)
-    start_input = gui.SearchBar(pg.Rect(250.0, 15.0, 200.0, 25.0), "Building Name", [])
-    end_text = gui.Text([650, 10.0], "To:", font)
-    end_input = gui.SearchBar(pg.Rect(700.0, 15.0, 200.0, 25.0), "Building Name", [])
-    finished_button = gui.Button(btn_rect, btn_sprite, lambda: start_pathing(start_input, end_input, view, editor_overlay))
-    search_frame = gui.Frame(pg.Rect(0.0, 0.0, WINDOW_WIDTH, SEARCH_BAR_HEIGHT), half_green_half_gold, start_text, start_input, end_text, end_input, finished_button)
-    elements = [view, search_frame]
 
+    # prepping editor
     map_editor.load_things(view, editor_overlay, WINDOW_HEIGHT, asset_path)
     view.mouse_movement = map_editor.scrolling_image_mouse_move_override
-    start_input.update_valid_answers( list(map_editor.traversal_nodes.keys()) )
-    end_input.valid_answers = start_input.valid_answers
+    building_list = list(map_editor.traversal_nodes.keys())
 
-    elements.append(editor_overlay)
+    # create the bottom bar
+    start_text = gui.Text([160.0, 10.0], "From:", font)
+    end_text = gui.Text([650, 10.0], "To:", font)
+    start_input = gui.SearchBar(pg.Rect(250.0, 15.0, 200.0, 25.0), "Building Name", building_list)
+    end_input = gui.SearchBar(pg.Rect(700.0, 15.0, 200.0, 25.0), "Building Name", building_list)
+    finished_button = gui.Button(btn_rect, btn_sprite, lambda: start_pathing(start_input, end_input, view, editor_overlay, building_list))
+
+    # load elements int containers
+    search_frame = gui.Frame(pg.Rect(0.0, 0.0, WINDOW_WIDTH, SEARCH_BAR_HEIGHT), half_green_half_gold, start_text, start_input, end_text, end_input, finished_button)
+    elements = [view, search_frame, editor_overlay]
 
     # edit mode stuff
     if edit_mode:

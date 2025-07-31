@@ -19,12 +19,18 @@ edges: list[tuple[int, int]] = []
 selected_node = -1
 edge_connections = []
 
+'''
+    Reset all nodes to no longer be a part of a path
+'''
 def reset_paths():
     global vertices
     for v in vertices:
         v.node.from_start = 0
         v.node.prev = None
 
+'''
+    Place the editor overlay ontop of the window
+'''
 def overlay_overlay():
     # overlay overlay on overlay
     global editor_overlay, drawn_path_overlay
@@ -32,6 +38,9 @@ def overlay_overlay():
         raise ValueError
     editor_overlay.surface.blit(drawn_path_overlay, editor_overlay.offset)
 
+'''
+    Follow a path and illustrate it on the window
+'''
 def draw_path(path: list[Node]):
     global drawn_path_overlay
     if not drawn_path_overlay:
@@ -44,6 +53,9 @@ def draw_path(path: list[Node]):
         pg.draw.line(drawn_path_overlay, (255,0,0), v1, v2, 3)
         pg.draw.circle(drawn_path_overlay, (255,0,0), v2, 5)
 
+'''
+    Save the edited data of the map to map.map
+'''
 def save_map_data():
     global vertices, edges
 
@@ -57,6 +69,9 @@ def save_map_data():
         file.write('\n{} {} {}'.format(e[0], e[1], d))
     file.close()
 
+'''
+    Load the map data stored in asset_path/map.map
+'''
 def load_map_data(asset_path: str):
     global vertices, edges, traversal_nodes
     file = open(asset_path + 'map.map', 'r')
@@ -85,6 +100,9 @@ def load_map_data(asset_path: str):
             v1.connect(v2, float(p3))
     rerender_vertices()
 
+'''
+    Load all map data and prepare elements for the user
+'''
 def load_things(view: ScrollingImage, overlay: ScrollingImage, wheight: float, asset_path: str):
     global scrolling_image, editor_overlay, win_height, edit_mode, drawn_path_overlay
     edit_mode = 2
@@ -94,6 +112,9 @@ def load_things(view: ScrollingImage, overlay: ScrollingImage, wheight: float, a
     win_height = wheight
     load_map_data(asset_path)
 
+'''
+    Create the frame for editing Vertex data
+'''
 def generate_vertex_edit_frame(w_width: float, f_width: float) -> Frame:
     global vertex_frame
     def submit_vertex_data():
@@ -125,6 +146,9 @@ def generate_vertex_edit_frame(w_width: float, f_width: float) -> Frame:
     vertex_frame = Frame(pg.Rect(w_width, 350, f_width, 400), frame_bg, name_typer, x_pos_text, x_typer, y_pos_text, y_typer, submit_btn, delete_btn)
     return vertex_frame
 
+'''
+    Redraw the verticces to the editor overlay
+'''
 def rerender_vertices():
     global vertices, editor_overlay
     if not editor_overlay: raise ValueError
@@ -138,6 +162,9 @@ def rerender_vertices():
         pg.draw.line(editor_overlay.image, (122,122,122), v0.coords, v1.coords, 2)
     editor_overlay.render()
 
+'''
+    Rerender the Vertex Frame
+'''
 def update_vertex_frame():
     global vertex_frame, vertices, selected_node
     if not vertex_frame: raise ValueError
@@ -157,6 +184,10 @@ def update_vertex_frame():
     y_typer.render()
     vertex_frame.update_surface()
 
+'''
+    A function for converting a scrolling image into a map editor
+    ScrollingImage.onclick = scrolling_image_in_click_override
+'''
 def scrolling_image_on_click_override(mpos: list[float]):
     global edit_mode, editor_overlay, vertices, selected_node, edge_connections, edges, win_height
 
@@ -196,7 +227,10 @@ def scrolling_image_on_click_override(mpos: list[float]):
             editor_overlay.render()
             edge_connections = []
 
-
+'''
+    A function for allowing a ScrollingImage to act as a map editor
+    ScrollingImage.mouse_movement = scrolling_image_mouse_move_override
+'''
 def scrolling_image_mouse_move_override(pressed: bool, dx: float, dy: float):
     global scrolling_image, editor_overlay
 
@@ -207,6 +241,9 @@ def scrolling_image_mouse_move_override(pressed: bool, dx: float, dy: float):
         scrolling_image.scroll(dx, dy)
         editor_overlay.scroll(dx, dy)
 
+'''
+    Cycle through edit modes
+'''
 def toggle_edit_mode(mode_btn: Button, font: pg.font.Font):
     global edit_mode
     edit_mode = (edit_mode + 1) % len(edit_modes)

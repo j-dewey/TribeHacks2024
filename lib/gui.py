@@ -4,6 +4,10 @@ from typing import Callable
 from lib.util import is_alphanumeric
 from lib.string_tree import StringTree
 
+'''
+    An abstract class representing any object that can be rendered to
+    the screen
+'''
 class GuiElement:
     surface: pg.Surface
     rect: pg.Rect
@@ -25,10 +29,16 @@ class GuiElement:
     def was_pressed(self, mpos: list[float]) -> bool:
         return False
 
+'''
+    A 'null' GuiElement
+'''
 class BlankElement(GuiElement):
     def was_pressed(self, mpos: list[float]) -> bool:
         return False
 
+'''
+    Just a text box
+'''
 class Text(GuiElement):
     def __init__(self, coords: list[float], text: str, font: pg.font.Font) -> None:
         self.surface = font.render(text, True, (0, 0,0), None)
@@ -38,6 +48,9 @@ class Text(GuiElement):
     def was_pressed(self, mpos: list[float]) -> bool:
         return self.rect.collidepoint(mpos)
 
+'''
+    An element that calls a function which interacted with
+'''
 class Button(GuiElement):
     def __init__(self, rect: pg.Rect, surface: pg.Surface, onclick: Callable) -> None:
         self.rect = rect
@@ -51,6 +64,9 @@ class Button(GuiElement):
     def was_pressed(self, mpos: list[float]) -> bool:
         return self.rect.collidepoint(mpos)
 
+'''
+    An image that can be scrolled across by moving the mouse to the edge
+'''
 class ScrollingImage(GuiElement):
     def __init__(self, rect: pg.Rect, image: pg.Surface, offset: list[float]) -> None:
         self.rect = rect
@@ -78,6 +94,9 @@ class ScrollingImage(GuiElement):
     def was_pressed(self, mpos: list[float]) -> bool:
         return self.rect.collidepoint(mpos)
 
+'''
+    An element composed of other elements
+'''
 class Frame(GuiElement):
     def __init__(self, rect: pg.Rect, background: pg.Surface, *elements: GuiElement) -> None:
         self.rect = rect
@@ -111,6 +130,9 @@ class Frame(GuiElement):
     def was_pressed(self, mpos: list[float]) -> bool:
         return self.rect.collidepoint(mpos)
 
+'''
+    An element that can be typed into
+'''
 class TypeBar(GuiElement):
     def __init__(self, rect: pg.Rect, text: str) -> None:
         self.rect = rect
@@ -133,6 +155,9 @@ class TypeBar(GuiElement):
     def was_pressed(self, mpos: list[float]) -> bool:
         return self.rect.collidepoint(mpos)
 
+'''
+    A type bar that has default answers which it will display as a user is typing
+'''
 class SearchBar(GuiElement):
     def __init__(self, rect: pg.Rect, default: str, valid_answers: list[str]) -> None:
         self.rect = rect
@@ -144,6 +169,7 @@ class SearchBar(GuiElement):
         self.font = pg.font.SysFont("arial", 20)
         self.render()
 
+    ''' Change the words which the bar will allow you to type / predict '''
     def update_valid_answers(self, new_answers: list[str]):
         self.valid_answers = StringTree(new_answers)
 
