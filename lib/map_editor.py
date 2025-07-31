@@ -1,7 +1,8 @@
 import pygame as pg
-from graph import Node
-from gui import Button, ScrollingImage, Frame, TypeBar, Text
-from util import circle_col, dist
+
+from lib.graph import Node
+from lib.gui import Button, ScrollingImage, Frame, TypeBar, Text
+from lib.util import circle_col, dist
 
 class DebugVertex:
     def __init__(self, x: float, y: float, name: str, node: Node):
@@ -37,7 +38,7 @@ def overlay_overlay():
 
 def draw_path(path: list[Node]):
     global drawn_path_overlay
-    drawn_path_overlay.fill((0,0,0,0)) 
+    drawn_path_overlay.fill((0,0,0,0))
     for i in range(len(path)-1):
         v1 = path[i].gui_inter.coords
         v2 = path[i+1].gui_inter.coords
@@ -58,14 +59,14 @@ def save_map_data():
         file.write('\n{} {} {}'.format(e[0], e[1], d))
     file.close()
 
-def load_map_data():
+def load_map_data(asset_path: str):
     global vertices, edges, traversal_nodes
-    file = open('map.map', 'r')
+    file = open(asset_path + 'map.map', 'r')
     data = file.read().split('\n')
     reading_indices = False
     for line in data:
         if line == '\\vertex': continue
-        if line == '\\connections': 
+        if line == '\\connections':
             reading_indices = True
             continue
         parts = line.split(' ')
@@ -86,14 +87,14 @@ def load_map_data():
             v1.connect(v2, float(p3))
     rerender_vertices()
 
-def load_things(view: ScrollingImage, overlay: ScrollingImage, wheight: float):
+def load_things(view: ScrollingImage, overlay: ScrollingImage, wheight: float, asset_path: str):
     global scrolling_image, editor_overlay, win_height, edit_mode, drawn_path_overlay
     edit_mode = 2
     scrolling_image = view
     editor_overlay = overlay
     drawn_path_overlay = pg.Surface(overlay.image.get_size(), pg.SRCALPHA)
     win_height = wheight
-    load_map_data()
+    load_map_data(asset_path)
 
 def generate_vertex_edit_frame(w_width: float, f_width: float) -> Frame:
     global vertex_frame
@@ -179,11 +180,11 @@ def scrolling_image_on_click_override(mpos: list[float]):
             pg.draw.line(editor_overlay.image, (122,122,122), vertices[edge_connections[0]].coords, vertices[edge_connections[1]].coords, 2)
             editor_overlay.render()
             edge_connections = []
-                
+
 
 def scrolling_image_mouse_move_override(pressed: bool, dx: float, dy: float):
     global scrolling_image, editor_overlay
-    if pressed and edit_mode == 2: 
+    if pressed and edit_mode == 2:
         scrolling_image.scroll(dx, dy)
         editor_overlay.scroll(dx, dy)
 

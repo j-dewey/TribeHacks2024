@@ -1,3 +1,4 @@
-import app
+from lib.app import run as run_app
+
 if __name__ =='__main__':
-    app.run(False)
+    run_app(edit_mode=False, asset_path="res/")
