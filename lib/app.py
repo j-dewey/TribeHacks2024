@@ -10,6 +10,9 @@ EDIT_BAR_WIDTH = 400
 
 SEARCH_BAR_HEIGHT = 50
 
+'''
+    Look for a path from the selection in start to the selection in end
+'''
 def start_pathing(start: gui.SearchBar, end: gui.SearchBar, map: gui.ScrollingImage, overlay: gui.ScrollingImage):
     start_node = map_editor.traversal_nodes[start.input]
     end_node = map_editor.traversal_nodes[end.input]
@@ -66,7 +69,7 @@ def run(edit_mode: bool, asset_path: str):
 
     map_editor.load_things(view, editor_overlay, WINDOW_HEIGHT, asset_path)
     view.mouse_movement = map_editor.scrolling_image_mouse_move_override
-    start_input.update_valid_answers( map_editor.traversal_nodes.keys() )
+    start_input.update_valid_answers( list(map_editor.traversal_nodes.keys()) )
     end_input.valid_answers = start_input.valid_answers
 
     elements.append(editor_overlay)
@@ -74,7 +77,7 @@ def run(edit_mode: bool, asset_path: str):
     # edit mode stuff
     if edit_mode:
         mode_btn_sprite = font.render("Mode: Vertex", True, (255, 255, 255), (122, 122, 122))
-        mode_btn = gui.Button(mode_btn_sprite.get_rect().move(WINDOW_WIDTH, WINDOW_HEIGHT - mode_btn_sprite.get_height()), mode_btn_sprite, None)
+        mode_btn = gui.Button(mode_btn_sprite.get_rect().move(WINDOW_WIDTH, WINDOW_HEIGHT - mode_btn_sprite.get_height()), mode_btn_sprite, lambda a: ... )
         mode_btn.onclick = lambda: map_editor.toggle_edit_mode(mode_btn, font)
 
         save_btn_sprite = font.render("Save", True, (255, 255, 255), (122, 122, 122))
