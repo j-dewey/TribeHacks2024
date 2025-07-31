@@ -5,6 +5,10 @@ from lib.util import is_alphanumeric
 from lib.string_tree import StringTree
 
 class GuiElement:
+    def __init__(self, rect: pg.Rect, surf: pg.Surface):
+        self.rect = rect
+        self.surface = surf
+
     def mouse_movement(self, pressed: bool, dx: float, dy: float):
         pass
 
@@ -12,6 +16,9 @@ class GuiElement:
         pass
 
     def key_press(self, key: pg.event.Event):
+        pass
+
+    def render(self):
         pass
 
     def was_pressed(self, mpos: list[float]) -> bool:
@@ -67,7 +74,7 @@ class Frame(GuiElement):
         self.surface = background
         self.background = background
         self.elements = list(elements)
-        self.scoped_element = BlankElement()
+        self.scoped_element = BlankElement(pg.Rect(0.0, 0.0, 0.0, 0.0), pg.Surface((0.0, 0.0)))
         self.update_surface()
 
     def update_surface(self):

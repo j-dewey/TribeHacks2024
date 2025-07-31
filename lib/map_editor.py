@@ -19,9 +19,9 @@ win_height = None
 edit_modes = ["Vertex", "Edge", "Pan"]
 edit_mode = 0
 
-traversal_nodes: dict[str:Node] = {}
+traversal_nodes: dict[str, Node] = {}
 vertices: list[DebugVertex] = []
-edges: list[tuple[int]] = []
+edges: list[tuple[int, int]] = []
 selected_node = -1
 edge_connections = []
 
@@ -29,15 +29,19 @@ def reset_paths():
     global vertices
     for v in vertices:
         v.node.from_start = 0
-        v.node.prev = None
+        v.node.prev = Node.null()
 
 def overlay_overlay():
     # overlay overlay on overlay
     global editor_overlay, drawn_path_overlay
+    if not editor_overlay or not drawn_path_overlay:
+        raise ValueError
     editor_overlay.surface.blit(drawn_path_overlay, editor_overlay.offset)
 
 def draw_path(path: list[Node]):
     global drawn_path_overlay
+    if not drawn_path_overlay:
+        raise ValueError
     drawn_path_overlay.fill((0,0,0,0))
     for i in range(len(path)-1):
         v1 = path[i].gui_inter.coords
@@ -48,7 +52,7 @@ def draw_path(path: list[Node]):
 
 def save_map_data():
     global vertices, edges
-    print('saving')
+
     file = open('map.map', 'w')
     file.write(str('\\vertex'))
     for v in vertices:
@@ -114,9 +118,9 @@ def generate_vertex_edit_frame(w_width: float, f_width: float) -> Frame:
 
     font = pg.font.SysFont("arial", 30)
     name_typer = TypeBar(pg.Rect(10, 10, f_width - 30, 40), 'SelectedVertex')
-    x_pos_text = Text((10, 60),"X:", font)
+    x_pos_text = Text([10, 60],"X:", font)
     x_typer = TypeBar(pg.Rect(50, 60, 70, 40), "0.0")
-    y_pos_text = Text((130, 60),"Y:", font)
+    y_pos_text = Text([130, 60],"Y:", font)
     y_typer = TypeBar(pg.Rect(170, 60, 70, 40), "0.0")
     submit_btn_sprite = font.render("Submit", True, (255,255,255), (122, 122, 122))
     submit_btn = Button(pg.Rect(50, 220, 300, 400), submit_btn_sprite, submit_vertex_data)
@@ -129,6 +133,8 @@ def generate_vertex_edit_frame(w_width: float, f_width: float) -> Frame:
 
 def rerender_vertices():
     global vertices, editor_overlay
+    if not editor_overlay: raise ValueError
+
     editor_overlay.image.fill((0,0,0,0))
     for v in vertices:
         pg.draw.circle(editor_overlay.image, (0,0,0), v.coords, 5)
@@ -140,6 +146,7 @@ def rerender_vertices():
 
 def update_vertex_frame():
     global vertex_frame, vertices, selected_node
+    if not vertex_frame: raise ValueError
     name_typer = vertex_frame.elements[0]
     x_typer = vertex_frame.elements[2]
     y_typer = vertex_frame.elements[4]
